@@ -6,41 +6,56 @@ package com.medidata.model
   * @author Carl Jokl
   * @since 21.03.17.
   */
-abstract class ServiceComponent {
+trait ServiceComponent {
 
   def name: String
 
   def costInPence: Int
+
+  def practitioner: Practitioner
 }
 
-case class SimpleService(name: String, costInPence: Int) extends ServiceComponent
+case class SimpleService(name: String, costInPence: Int, practitioner: Practitioner) extends ServiceComponent
 
-case class QuantifiedComponent(service: ServiceComponent, quantity: Int) extends ServiceComponent {
+case class QuantifiedService(service: ServiceComponent, quantity: Int) extends ServiceComponent {
 
   def name = service.name
 
   def costInPence = service.costInPence * quantity
+
+  override def practitioner = service.practitioner
 }
 
-case class CompositeService(name: String, baseCostInPence: Int, subComponents: Seq[ServiceComponent]) extends ServiceComponent {
+case class CompositeService(name: String, baseCostInPence: Int, subComponents: Seq[ServiceComponent], practitioner: Practitioner) extends ServiceComponent {
 
   def costInPence: Int = {
     baseCostInPence + subComponents.map(_.costInPence).sum
   }
+}
 
+case class Practitioner(name: String)
 
+object Practitioners {
+
+  val MediHealth = Practitioner("MediHealth")
+  val Bupa = Practitioner("Bupa")
+  val NHS = Practitioner("NHS")
 }
 
 object Services {
 
-  val Diagnosis = SimpleService("Diagnosis", 6000)
-  val XRay = SimpleService("X-Ray", 150000)
-  val BloodTest = SimpleService("Blood Test", 7800)
-  val ECG = SimpleService("ECG", 20040)
-  val Vaccine = SimpleService("Individual Vaccine", 1500)
+  def diagnosis(practitioner: Practitioner): ServiceComponent = SimpleService("Diagnosis", 6000, practitioner)
 
-  def Vaccination(noOfVaccines: Int): Unit = {
-    CompositeService("Vaccination", 2750, Seq(QuantifiedComponent(Vaccine, noOfVaccines)))
+  def xray(practitioner: Practitioner): ServiceComponent = SimpleService("X-Ray", 15000, practitioner)
+
+  def bloodTest(practitioner: Practitioner): ServiceComponent = SimpleService("Blood Test", 7800, practitioner)
+
+  def ecg (practitioner: Practitioner): ServiceComponent = SimpleService("ECG", 20040, practitioner)
+
+  def vaccine(practitioner: Practitioner): ServiceComponent = SimpleService("Individual Vaccine", 1500, practitioner)
+
+  def vaccination(practitioner: Practitioner, noOfVaccines: Int): ServiceComponent = {
+    CompositeService("Vaccination", 2750, Seq(QuantifiedService(vaccine(practitioner), noOfVaccines)), practitioner)
   }
 }
 
